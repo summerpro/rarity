@@ -31,11 +31,11 @@ class RarityMulti extends ContractManager {
     }
 
     multiple_transfer_materials(account, heroList, to, amountList) {
-        return this.write('multiple_transfer_materials(uint[],uint256,uint[])', [heroList, to, amountList], account)
+        return this.write('multiple_transfer_materials(uint256[],uint256,uint256[])', [heroList, to, amountList], account)
     }
 
     multiple_transfer_gold(account, heroList, to, amountList) {
-        return this.write('multiple_transfer_gold(uint[],uint256,uint[])', [heroList, to, amountList], account)
+        return this.write('multiple_transfer_gold(uint256[],uint256,uint256[])', [heroList, to, amountList], account)
     }
 
     multiple_approve(account, heroList) {
