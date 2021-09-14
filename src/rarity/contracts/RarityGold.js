@@ -14,12 +14,21 @@ class RarityGold extends ContractManager {
     super(rarityEth, RarityGold.CONTRACT_ADDRESS, RarityGold.ABI)
   }
 
-  claimable(id) {
-    return this.read('claimable(uint256)', id)
+  claimable(account, id) {
+    return this.read('claimable(uint256)', id, account)
   }
 
   claim(account, id) {
     return this.write('claim(uint256)', id, account)
+  }
+
+  transfer(account, from, to, amount) {
+    return this.write('transfer(uint256,uint256,uint256)',
+        [from, to, amount], account)
+  }
+
+  balanceOf(id) {
+    return this.read('balanceOf(uint256)', id)
   }
 }
 

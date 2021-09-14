@@ -22,6 +22,14 @@ class Rarity extends ContractManager {
     return this.write('adventure(uint256)', id, account, { gas: 100e4, nonce })
   }
 
+  approve(account, to, hero) {
+    return this.write('approve(address,uint256)', [to, hero], account)
+  }
+
+  getApproved(hero) {
+    return this.read('getApproved(uint256)', [hero])
+  }
+
   /**
    * @returns {_xp, _log, _class, _level}
    */

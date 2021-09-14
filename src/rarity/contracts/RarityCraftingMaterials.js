@@ -29,6 +29,12 @@ class RarityCraftingMaterials extends ContractManager {
   balanceOf(hero) {
     return this.read('balanceOf(uint256)', hero)
   }
+
+  transfer(account, from, to, amount) {
+    return this.write('transfer(uint256,uint256,uint256)',
+        [from, to, amount],
+        account)
+  }
 }
 
 module.exports = RarityCraftingMaterials

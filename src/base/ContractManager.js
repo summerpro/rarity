@@ -50,10 +50,10 @@ class ContractManager {
    * @param {Array|*} params '123' or '[123, 456]'
    * @returns {Promise<Object>} 'value' or Result { key1: 'value1', key2: 'value2' }
    */
-  async read(method, params) {
+  async read(method, params, account = null) {
     this.checkContract()
     if (!Array.isArray(params)) params = [params]
-    const r = await this.contract.methods[method].apply(undefined, params).call()
+    const r = await this.contract.methods[method].apply(undefined, params).call({ from: account})
     debug('read method =', method, 'result =', r)
     return r
   }
@@ -85,7 +85,7 @@ class ContractManager {
    *   events: {}
    * }
    */
-  async write(method, params, account, { gas, gasPrice, value, nonce } = { gas: '1000000' }) {
+  async write(method, params, account, { gas, gasPrice, value, nonce } = { gas: '5000000' }) {
     this.checkContract()
     if (!account) throw Error('Account is empty!')
     gasPrice = await this.ethereumManager.calcGasPrice(gasPrice)
