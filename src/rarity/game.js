@@ -402,7 +402,7 @@ async function startMultiTransferMaterials() {
         logger.info(`multiple_transfer_materials success, heros: ${selectedHeros}`)
       }
     } catch (e) {
-      logger.error(`${hero} multiple_transfer_materials error`, e)
+      logger.error(`${selectedHeros} multiple_transfer_materials error`, e)
     }
   }
   logger.info('TransferAttributes complete')
