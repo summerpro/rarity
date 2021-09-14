@@ -18,6 +18,7 @@ const gold = new RarityGold()
 const craftI = new RarityCraftingMaterials()
 const attributes = new RarityAttributes()
 const rarityMulti = new RarityMulti()
+const multiNum = 100
 
 async function adventure(account, hero, nonce = null) {
   logger.info(`${hero} adventure start (account ${account})`)
@@ -97,7 +98,7 @@ async function adventureAllMulti(AddressHeros) {
   await levelupMulti(AddressHeros)
   logger.info('adventureAllMulti complete')
 }
-const multiNum = 100
+
 async function adventureMulti(AddressHeros) {
   let newAddressHeros = []
   logger.info('adventureMulti start')
@@ -493,7 +494,7 @@ async function multiApprove() {
         }
         logger.info(`selected approve ${rarityMulti.contractAddress} ${hero}`)
         selectedHeros.push(hero)
-        if (selectedHeros.length > multiNum) {
+        if (selectedHeros.length >= multiNum) {
           await rarityMulti.multiple_approve(address, selectedHeros)
           logger.info(`multiple_approve success, heros: ${selectedHeros}`)
           selectedHeros = []
