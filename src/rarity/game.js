@@ -93,6 +93,7 @@ async function adventureAll(AddressHeros) {
 
 async function adventureAllMulti(AddressHeros) {
   logger.info('adventureAllMulti start')
+  await multiApprove()
   await collectCraftIMulti(AddressHeros)
   let newAddressHeros = await adventureMulti(AddressHeros)
   await levelupMulti(AddressHeros)
@@ -116,7 +117,12 @@ async function adventureMulti(AddressHeros) {
         selectedHeroList.push(hero)
         totalSelectedHeroList.push(hero)
         if(selectedHeroList.length >= multiNum) {
-          await rarityMulti.multiple_adventure(address, selectedHeroList)
+          try {
+            await rarityMulti.multiple_adventure(address, selectedHeroList)
+          } catch (e) {
+            logger.error(`${hero} adventure error`, e)
+            selectedHeroList = []
+          }
           logger.info(`adventure success, hero list:${selectedHeroList}`)
           selectedHeroList = []
         }
@@ -152,7 +158,12 @@ async function levelupMulti(AddressHeros) {
           selectedHeroList.push(hero)
         }
         if(selectedHeroList.length >= multiNum) {
-          await rarityMulti.multiple_level_up(address, selectedHeroList)
+          try {
+            await rarityMulti.multiple_level_up(address, selectedHeroList)
+          } catch (e) {
+            logger.error(`${selectedHeroList} levelup error`, e)
+            selectedHeroList = []
+          }
           logger.info(`level up success, hero list:${selectedHeroList}`)
           // await rarityMulti.multiple_claim_gold(address, selectedHeroList)
           // logger.info(`claim_gold success, hero list:${selectedHeroList}`)
@@ -195,7 +206,12 @@ async function collectCraftIMulti(AddressHeros) {
         }
         selectedHeroList.push(hero)
         if(selectedHeroList.length >= multiNum) {
-          await rarityMulti.multiple_adventure_crafting_materials(address, selectedHeroList)
+          try {
+            await rarityMulti.multiple_adventure_crafting_materials(address, selectedHeroList)
+          } catch (e) {
+            logger.error(`${hero} collectCraft(I) error`, e)
+            selectedHeroList = []
+          }
           logger.info(`collectCraft success, hero list:${selectedHeroList}`)
           selectedHeroList = []
         }
@@ -242,7 +258,12 @@ async function multiClaimGoldAll(AddressHeros) {
         selectedHeroList.push(hero)
         logger.info(`${hero} push selected hero ${claimable} gold`)
         if(selectedHeroList.length >= multiNum) {
-          await rarityMulti.multiple_claim_gold(address, selectedHeroList)
+          try {
+            await rarityMulti.multiple_claim_gold(address, selectedHeroList)
+
+          } catch (e) {
+            logger.error(`${hero} claimGold error`, e)
+          }
           logger.info(`claimGold success, hero list:${selectedHeroList}`)
           selectedHeroList = []
         }
@@ -481,6 +502,7 @@ async function startTransferGold() {
 
 
 async function multiApprove() {
+  let multiNum = 100;
   const AddressHeros = await loadAccounts()
   logger.info('multiApprove start')
   for (const { address, heros } of AddressHeros) {
@@ -495,7 +517,12 @@ async function multiApprove() {
         logger.info(`selected approve ${rarityMulti.contractAddress} ${hero}`)
         selectedHeros.push(hero)
         if (selectedHeros.length >= multiNum) {
-          await rarityMulti.multiple_approve(address, selectedHeros)
+          try {
+            await rarityMulti.multiple_approve(address, selectedHeros)
+          } catch (e) {
+            logger.error(` multiple_approve error`, e)
+            selectedHeros = []
+          }
           logger.info(`multiple_approve success, heros: ${selectedHeros}`)
           selectedHeros = []
         }

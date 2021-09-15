@@ -81,7 +81,7 @@ class GasPriceCalculators {
     return async function (web3, price) {
       const currentPrice = await getCurrentPrice(web3)
       // If gasPrice too low, transaction fails outright. A passable price would be currentPrice - offset
-      const passablePrice = currentPrice - offset
+      const passablePrice = currentPrice
       // if passablePrice > abortPrice, abort the transaction
       if (NumberUtils.gt(passablePrice, abortPrice)) {
         throw Error(`passable gas price is ${passablePrice} > ${abortPrice}, abort transaction`)

@@ -16,15 +16,15 @@ rarity.setGasPriceCalculator(GasPriceCalculators.default())
 async function main() {
   logger.info(process.argv)
 
-  if (process.argv.length != 4) {
-    logger.info('Usage:   node src/rarity/scripts/batch-create-heros.js ACCOUNT_LIST_JSON_FILE HERO_COUNT_PER_ACCOUNT')
-    logger.info('Example: node src/rarity/scripts/batch-create-heros.js secrets/accounts.json 11')
-    return
-  }
+  // if (process.argv.length != 5) {
+  //   logger.info('Usage:   node src/rarity/scripts/batch-create-heros.js ACCOUNT_LIST_JSON_FILE HERO_COUNT_PER_ACCOUNT')
+  //   logger.info('Example: node src/rarity/scripts/batch-create-heros.js secrets/accounts.json 11')
+  //   return
+  // }
 
-  const accounts = require(path.resolve('.', process.argv[2]))
-  const heroCount = Number(process.argv[3])
-
+  const accounts = require(path.resolve('.', "../../../secrets/rarity-accounts.json"))
+  const heroCount = 100
+  const heroClass = 7
   logger.info(`will mint ${heroCount} heros for each of ${accounts.length} accounts`)
 
   for (const account of accounts) {
@@ -35,7 +35,7 @@ async function main() {
     }
     logger.info(`min heros for account ${address}`)
     for (let i = 0; i < heroCount; ++i) {
-      const _class = i % 11 + 1
+      const _class = heroClass
       logger.info(`mint hero ${i} with class ${_class} for account ${address}`)
       try {
         await rarity.summon(address, _class)
