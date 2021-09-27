@@ -52,8 +52,13 @@ class ContractManager {
    */
   async read(method, params, account = null) {
     this.checkContract()
-    if (!Array.isArray(params)) params = [params]
-    const r = await this.contract.methods[method].apply(undefined, params).call({ from: account})
+    if (!Array.isArray(params) && params != null) params = [params]
+    let r = 0;
+    if (params == null) {
+      r = await this.contract.methods[method].apply(undefined).call({ from: account})
+    } else {
+       r = await this.contract.methods[method].apply(undefined, params).call({ from: account})
+    }
     debug('read method =', method, 'result =', r)
     return r
   }

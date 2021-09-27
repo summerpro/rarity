@@ -25,6 +25,10 @@ class RarityAttributes extends ContractManager {
       account
     )
   }
+
+  ability_scores(summoner) {
+    return this.read('ability_scores(uint256)', summoner)
+  }
 }
 
 module.exports = RarityAttributes

@@ -2,6 +2,15 @@
 pragma solidity ^0.8.7;
 
 
+interface IERC721Receiver {
+    function onERC721Received(
+        address operator,
+        address from,
+        uint256 tokenId,
+        bytes calldata data
+    ) external returns (bytes4);
+}
+
 interface rarity {
     function summon(uint _class) external;
 
@@ -26,6 +35,10 @@ interface rarity {
     function isApprovedForAll(address owner, address operator) external pure returns (bool) ;
 
     function approve(address to, uint256 tokenId) external;
+
+    function safeTransferFrom(address from, address to, uint256 tokenId) external;
+
+    function next_summoner() external pure returns (uint);
 }
 
 interface rarity_gold {
@@ -34,6 +47,8 @@ interface rarity_gold {
     function claimed(uint summoner) external pure returns (uint);
 
     function transfer(uint from, uint to, uint amount) external returns (bool);
+
+    function approve(uint256 from, uint256 spender, uint256 amount) external;
 }
 
 interface rarity_crafting_materials {
@@ -42,6 +57,8 @@ interface rarity_crafting_materials {
     function adventurers_log (uint _summoner) external pure returns (uint);
 
     function transfer(uint from, uint to, uint amount) external returns (bool);
+
+    function approve(uint256 from, uint256 spender, uint256 amount) external;
 }
 
 interface rarity_attributes {
@@ -50,13 +67,19 @@ interface rarity_attributes {
 
 interface rarity_crafting {
     function craft(uint _summoner, uint8 _base_type, uint8 _item_type, uint _crafting_materials) external;
+
+    function next_item() external pure returns (uint);
+
+    function safeTransferFrom(address from, address to, uint256 tokenId) external;
+
+    function SUMMMONER_ID() external pure returns (uint);
 }
 
 interface rarity_skills {
     function set_skills(uint _summoner, uint8[36] memory _skills) external;
 }
 
-contract MultipleRarity {
+contract MultipleRarity is IERC721Receiver {
     rarity constant _rarity = rarity(0xce761D788DF608BD21bdd59d6f4B54b2e27F25Bb);
 
     rarity_gold constant _rarity_gold = rarity_gold(0x2069B76Afe6b734Fb65D1d099E7ec64ee9CC76B2);
@@ -69,11 +92,35 @@ contract MultipleRarity {
 
     rarity_skills constant _rarity_skills = rarity_skills(0x51C0B29A1d84611373BA301706c6B4b72283C80F);
 
-    address payable  owner;
+    uint256 _rarity_crafting_spender = 1758709;
+
+    address payable owner;
 
     constructor() { owner = payable(msg.sender); }
 
-    function multiple_transfer_gold(uint[] calldata _summoners, uint256 to, uint[] calldata _amounts) external {
+    function multiple_approve_gold(uint256[] calldata from, uint256 spender, uint256 amount) external {
+        for (uint256 i = 0; i < from.length; i++) {
+            require(_isOwner(from[i]), "msg.sender is not the owner of the summoner");
+            _rarity_gold.approve(from[i], spender, amount);
+        }
+    }
+
+    function multiple_approve_materials(uint256[] calldata from, uint256 spender, uint256 amount) external {
+        for (uint256 i = 0; i < from.length; i++) {
+            require(_isOwner(from[i]), "msg.sender is not the owner of the summoner");
+            _rarity_crafting_materials.approve(from[i], spender, amount);
+        }
+    }
+
+    function multiple_approve_materials_and_gold(uint256[] calldata from) external {
+        for (uint256 i = 0; i < from.length; i++) {
+            require(_isOwner(from[i]), "msg.sender is not the owner of the summoner");
+            _rarity_gold.approve(from[i], _rarity_crafting_spender, 10000000000000000000000000);
+            _rarity_crafting_materials.approve(from[i], _rarity_crafting_spender, 10000000000000000000000000);
+        }
+    }
+
+    function multiple_transfer_gold(uint256[] calldata _summoners, uint256 to, uint[] calldata _amounts) external {
         require(_summoners.length == _amounts.length);
         for (uint256 i = 0; i < _summoners.length; i++) {
             if(_isOwner(_summoners[i])) {
@@ -81,12 +128,29 @@ contract MultipleRarity {
             }
         }
     }
-    function multiple_transfer_materials(uint[] calldata _summoners, uint256 to, uint[] calldata _amounts) external {
+
+    function multiple_distribute_gold(uint256 _summoner, uint256[] calldata _to, uint[] calldata _amounts) external {
+        require(_to.length == _amounts.length, "to.length not equal to amounts.length");
+        require(_isOwner(_summoner), "msg.sender is not the owner of the summoner");
+        for (uint256 i = 0; i < _to.length; i++) {
+            _rarity_gold.transfer(_summoner, _to[i], _amounts[i]);
+        }
+    }
+
+    function multiple_transfer_materials(uint[] calldata _summoners, uint256 _to, uint[] calldata _amounts) external {
         require(_summoners.length == _amounts.length);
         for (uint256 i = 0; i < _summoners.length; i++) {
             if(_isOwner(_summoners[i])) {
-                _rarity_crafting_materials.transfer(_summoners[i], to, _amounts[i]);
+                _rarity_crafting_materials.transfer(_summoners[i], _to, _amounts[i]);
             }
+        }
+    }
+
+    function multiple_distribute_materials(uint _summoner, uint256[] calldata _to, uint[] calldata _amounts) external {
+        require(_to.length == _amounts.length, "to.length not equal to amounts.length");
+        require(_isOwner(_summoner), "msg.sender is not the owner of the summoner");
+        for (uint256 i = 0; i < _to.length; i++) {
+            _rarity_crafting_materials.transfer(_summoner, _to[i], _amounts[i]);
         }
     }
 
@@ -109,17 +173,13 @@ contract MultipleRarity {
 
     function multiple_adventure(uint[] calldata _summoners) external {
         for (uint256 i = 0; i < _summoners.length; i++) {
-            if (_isApprovedForAll(_summoners[i])) {
-                _rarity.adventure(_summoners[i]);
-            }
+            _rarity.adventure(_summoners[i]);
         }
     }
 
     function multiple_level_up(uint[] calldata _summoners) external {
         for (uint256 i = 0; i < _summoners.length; i++) {
-            if (_isApprovedForAll(_summoners[i])) {
-                _rarity.level_up(_summoners[i]);
-            }
+            _rarity.level_up(_summoners[i]);
         }
     }
 
@@ -145,6 +205,46 @@ contract MultipleRarity {
         }
     }
 
+    function multi_transfer_summoners(uint[] calldata _summoners) external {
+        require(msg.sender == owner, "Only owner can call this function.");
+        for (uint256 i = 0; i < _summoners.length; i++) {
+            _rarity.safeTransferFrom(address(this), msg.sender, _summoners[i]);
+        }
+    }
+
+    function multi_transfer_crafting_items(uint[] calldata _id) external {
+        require(msg.sender == owner, "Only owner can call this function.");
+        for (uint256 i = 0; i < _id.length; i++) {
+            _rarity_crafting.safeTransferFrom(address(this), msg.sender, _id[i]);
+        }
+    }
+
+    function multi_mint_summoners(uint[] calldata class, uint[] calldata number) external {
+        require(class.length == number.length);
+        uint summonerId = _rarity.next_summoner();
+        for (uint256 i = 0; i < class.length; i++) {
+            for(uint256 j = 0; j < number[i]; j++) {
+                _rarity.summon(class[i]);
+                _rarity.safeTransferFrom(address(this), msg.sender, summonerId);
+                summonerId++;
+
+            }
+        }
+    }
+
+    function multi_crafting(uint[] calldata _summoners, uint8[] calldata _base_type, uint8[] calldata _item_type, uint[] calldata _crafting_materials) external {
+        require(_summoners.length == _base_type.length && _summoners.length == _item_type.length && _summoners.length == _crafting_materials.length);
+        uint itemId = _rarity_crafting.next_item();
+        for (uint256 i = 0; i < _summoners.length; i++) {
+            if (!_isApproved(_summoners[i])) {
+                _rarity.approve(address(this), _summoners[i]);
+            }
+            _rarity_crafting.craft(_summoners[i], _base_type[i], _item_type[i], _crafting_materials[i]);
+            _rarity_crafting.safeTransferFrom(address(this), msg.sender, itemId);
+            itemId++;
+        }
+    }
+
     function destroy() external {
         require(msg.sender == owner, "Only owner can call this function.");
         selfdestruct(owner);
@@ -160,6 +260,10 @@ contract MultipleRarity {
 
     function _isApprovedForAll(uint _summoner) internal view virtual returns (bool) {
         return (_rarity.getApproved(_summoner) == address(this) || _rarity.isApprovedForAll(_rarity.ownerOf(_summoner), address(this)));
+    }
+
+    function onERC721Received(address operator, address from, uint256 tokenId, bytes calldata data) override external returns (bytes4){
+        return this.onERC721Received.selector;
     }
 
 }

@@ -1,3 +1,3 @@
-const { startAssignAttributes } = require("../game");
+const { startSetAttribute } = require("../concurrent");
 
-startAssignAttributes()
+startSetAttribute()

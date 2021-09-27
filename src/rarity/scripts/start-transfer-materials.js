@@ -1,3 +1,3 @@
-const { startTransferMaterials } = require("../game");
+const { startTransferMaterials } = require("../concurrent");
 
 startTransferMaterials()

@@ -1,3 +1,3 @@
-const { scheduleAdventure } = require("../game");
+const { scheduleAdventure } = require("../concurrent");
 
 scheduleAdventure()
