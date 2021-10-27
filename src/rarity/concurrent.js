@@ -150,14 +150,15 @@ async function levelupMulti(AddressHeros) {
         try {
             const {_xp, _level} = await rarity.summoner(hero)
             const xp_required = await rarity.xp_required(_level)
-            if (_level > 1 && NumberUtils.gte(_xp, xp_required)) {
+            let attributeValue = await attributes.ability_scores(hero)
+            if (attributeValue.intelligence != 22 && NumberUtils.gte(_xp, xp_required)) {
                 logger.info(`selected hero: ${hero}, xp: ${_xp}, level: ${_level}`)
                 return hero
             }
             // logger.info(`can not be upgraded hero: ${hero}, xp:${_xp}, level: ${_level}`)
         } catch (e) {
             logger.error(`${hero} levelup error`, e)
-            await preExecFunc(item, callback)
+            return await preExecFunc(item, callback)
         }
     }
     const execFunc = async function (address, selectedHeroList) {
